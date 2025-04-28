@@ -1,35 +1,42 @@
-import pandas as pd
-from sklearn.linear_model import LinearRegression
-import gradio as gr
-import pickle
-import numpy as np
+# gin_sales_gpt.py
+"""
+Gin Sales Predictor
+--------------------
+Predicts how much gin a distillery would sell based on the temperature of the day.
 
-# Load or simulate data
-def create_synthetic_data():
-    temps = np.random.uniform(50, 100, 200)
-    sales = 20 + (temps - 50) * 3 + np.random.normal(0, 10, 200)  # Some randomness
-    return pd.DataFrame({"Temperature": temps, "Gin_Sales": sales})
+Author: Joshua N. Moses
+Date: 2025
+"""
 
-df = create_synthetic_data()
+import joblib
 
-# Train model
-model = LinearRegression()
-model.fit(df[["Temperature"]], df["Gin_Sales"])
+def load_model(model_path='gin_sales_model.pkl'):
+    """Load the pre-trained gin sales prediction model."""
+    return joblib.load(model_path)
 
-# Save model (optional)
-with open("gin_sales_model.pkl", "wb") as f:
-    pickle.dump(model, f)
+def predict_sales(model, temperature):
+    """Predict gin sales based on temperature."""
+    return model.predict([[temperature]])[0]
 
-# Prediction function
-def predict_sales(temp):
-    pred = model.predict([[temp]])
-    return f"📦 Predicted gin sales: {pred[0]:.2f} liters"
+def main():
+    """Main function to run the sales predictor."""
+    model = load_model()
 
-# Launch Gradio interface
-gr.Interface(
-    fn=predict_sales,
-    inputs=gr.Number(label="🌡️ Temperature (°F)"),
-    outputs="text",
-    title="🍸 Gin Sales Predictor",
-    description="Predict how much gin will be sold based on today's temperature."
-).launch()
+    print("🍸 Welcome to the Gin Sales Predictor! 🍸\n")
+    
+    while True:
+        user_input = input("Enter the temperature in degrees Celsius (or type 'exit' to quit): ").strip()
+        
+        if user_input.lower() == 'exit':
+            print("Goodbye! Stay refreshed. 🍸")
+            break
+        
+        try:
+            temperature = float(user_input)
+            prediction = predict_sales(model, temperature)
+            print(f"🔮 Predicted Gin Sales: {prediction:.2f} liters\n")
+        except ValueError:
+            print("⚠️ Please enter a valid numeric temperature.\n")
+
+if __name__ == "__main__":
+    main()
